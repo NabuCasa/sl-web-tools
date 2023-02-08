@@ -24,16 +24,15 @@ export class UsfIcon extends LitElement {
   }
 
   static styles = css`
-    :host {
-      vertical-align: middle;
+    :host,
+    svg {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
     }
 
     svg {
-      vertical-align: middle;
-      width: 24px;
-      height: 24px;
-
-      display: inline-block;
+      vertical-align: baseline;
     }
   `;
 }

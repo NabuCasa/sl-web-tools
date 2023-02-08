@@ -10,8 +10,9 @@ import '@material/mwc-formfield';
 import '@material/mwc-radio';
 import '@material/mwc-dialog';
 
-import { mdiChip, mdiShimmer, mdiAutorenew } from '@mdi/js';
+import { mdiChip, mdiShimmer, mdiAutorenew, mdiClose } from '@mdi/js';
 import './usf-icon';
+import './usf-icon-button';
 import './usf-file-upload';
 
 import { parseFirmwareBuffer } from './firmware-selector';
@@ -51,9 +52,14 @@ enum FlashingStep {
 @customElement('flashing-dialog')
 export class FlashingDialog extends LitElement {
   static styles = css`
+    :host {
+      --mdc-theme-primary: #03a9f4;
+    }
+
     a {
       color: var(--mdc-theme-primary);
     }
+
     .metadata {
       font-size: 0.8em;
     }
@@ -62,7 +68,7 @@ export class FlashingDialog extends LitElement {
       vertical-align: middle;
     }
 
-    mwc-icon-button[icon='close'] {
+    #closeButton {
       position: absolute;
       top: 10px;
       right: 10px;
@@ -103,6 +109,10 @@ export class FlashingDialog extends LitElement {
 
     .centered {
       text-align: center;
+    }
+
+    td usf-icon {
+      vertical-align: bottom;
     }
   `;
 
@@ -531,10 +541,9 @@ export class FlashingDialog extends LitElement {
       >
         ${showCloseButton
           ? html`
-              <mwc-icon-button
-                icon="close"
-                dialogAction="close"
-              ></mwc-icon-button>
+              <usf-icon-button id="closeButton" dialogAction="close">
+                <usf-icon .icon=${mdiClose}></usf-icon>
+              </usf-icon-button>
             `
           : ''}
         ${content}
