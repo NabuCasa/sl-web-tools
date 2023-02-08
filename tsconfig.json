@@ -12,7 +12,6 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "outDir": "dist",
-    "sourceMap": true,
     "inlineSources": true,
     "rootDir": "./",
     "incremental": true
