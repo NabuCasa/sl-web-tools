@@ -12,9 +12,8 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "outDir": "dist",
-    "inlineSources": true,
-    "rootDir": "./",
+    "rootDir": "./src",
     "incremental": true
   },
-  "include": ["src/**/*.ts", "src/**/*.py"]
+  "include": ["**/*.ts", "**/*.py"]
 }
