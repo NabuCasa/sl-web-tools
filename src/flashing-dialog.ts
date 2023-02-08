@@ -52,9 +52,14 @@ enum FlashingStep {
 @customElement('flashing-dialog')
 export class FlashingDialog extends LitElement {
   static styles = css`
+    :host {
+      --mdc-theme-primary: #03a9f4;
+    }
+
     a {
       color: var(--mdc-theme-primary);
     }
+
     .metadata {
       font-size: 0.8em;
     }
