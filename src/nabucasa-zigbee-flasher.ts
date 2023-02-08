@@ -15,7 +15,6 @@ export class NabuCasaSilabsFlasher extends LitElement {
     const manifest: Manifest = await response.json();
 
     const dialog = document.createElement('flashing-dialog');
-    console.log('Setting', dialog, manifest);
     dialog.manifest = manifest;
     document.body.appendChild(dialog);
   }
