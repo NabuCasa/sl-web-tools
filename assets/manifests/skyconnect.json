@@ -1,0 +1,26 @@
+{
+	"product_name": "Home Assistant SkyConnect",
+	"bootloader_baudrate": 115200,
+	"application_baudrate": 115200,
+	"usb_filters": [
+		{
+			"pid": 60000,
+			"vid": 4292
+		}
+	],
+	"firmwares": [
+		{
+			"name": "Zigbee (EZSP)",
+			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/EmberZNet/beta/NabuCasa_SkyConnect_EZSP_v7.1.4.0_ncp-uart-hw_115200.gbl",
+			"type": "ncp-uart-hw",
+			"version": "7.1.4.0"
+		},
+		{
+			"name": "Multi-PAN (RCP)",
+			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/RCPMultiPAN/NabuCasa_SkyConnect_RCP_v4.1.4_rcp-uart-hw-802154_115200.gbl",
+			"type": "rcp-uart-802154",
+			"version": "4.1.4"
+		}
+	],
+	"allow_custom_firmware_upload": true
+}
