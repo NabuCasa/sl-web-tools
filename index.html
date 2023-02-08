@@ -68,6 +68,15 @@
       </nabucasa-zigbee-flasher>
     </main>
 
-    <script type="module" src="./dist/web/nabucasa-zigbee-flasher.js"></script>
+    <script module>
+      import(
+        // In development we import locally.
+        window.location.hostname === 'localhost'
+          ? '/dist/web/nabucasa-zigbee-flasher.js'
+          : 'https://unpkg.com/@nabucasa/sl-web-tools/dist/web/nabucasa-zigbee-flasher.js?module'
+      );
+    </script>
+
+    <script type="module" src=""></script>
   </body>
 </html>
