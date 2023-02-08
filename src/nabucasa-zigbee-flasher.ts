@@ -1,7 +1,6 @@
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { Manifest } from './const';
-import './flashing-dialog';
 
 import '@material/mwc-button';
 
@@ -11,10 +10,12 @@ export class NabuCasaSilabsFlasher extends LitElement {
   public manifest!: string;
 
   async openFlasherDialog() {
+    import('./flashing-dialog');
     const response = await fetch(this.manifest);
     const manifest: Manifest = await response.json();
 
     const dialog = document.createElement('flashing-dialog');
+    console.log('Setting', dialog, manifest);
     dialog.manifest = manifest;
     document.body.appendChild(dialog);
   }

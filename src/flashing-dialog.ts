@@ -51,6 +51,9 @@ enum FlashingStep {
 @customElement('flashing-dialog')
 export class FlashingDialog extends LitElement {
   static styles = css`
+    a {
+      color: var(--mdc-theme-primary);
+    }
     .metadata {
       font-size: 0.8em;
     }
@@ -134,17 +137,12 @@ export class FlashingDialog extends LitElement {
   @query('mwc-dialog')
   private mwcDialog!: HTMLDialogElement;
 
-  public connectedCallback() {
-    super.connectedCallback();
-
-    // Immediately open the serial port selection interface on connect
-    this.selectSerialPort();
-  }
-
   public firstUpdated(changedProperties: Map<string, any>) {
     super.firstUpdated(changedProperties);
 
     this.mwcDialog.addEventListener('close', this.close);
+
+    this.selectSerialPort();
   }
 
   private getFirmwareMetadata() {
@@ -185,18 +183,23 @@ export class FlashingDialog extends LitElement {
 
   private async selectSerialPort() {
     this.flashingStep = FlashingStep.SELECTING_PORT;
+    const options: SerialPortRequestOptions = {};
+
+    if (this.manifest.usb_filters) {
+      options.filters = this.manifest.usb_filters.map(f => ({
+        usbProductId: f.pid,
+        usbVendorId: f.vid,
+      }));
+    }
 
     try {
-      this.serialPort = await navigator.serial.requestPort({
-        filters: this.manifest.usb_filters.map(f => ({
-          usbProductId: f.pid,
-          usbVendorId: f.vid,
-        })),
-      });
-    } catch {
+      this.serialPort = await navigator.serial.requestPort(options);
+    } catch (err) {
+      console.log(err);
       this.mwcDialog.open = true;
       this.serialPort = undefined;
       this.flashingStep = FlashingStep.PORT_SELECTION_CANCELLED;
+      return;
       return;
     }
 

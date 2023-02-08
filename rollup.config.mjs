@@ -3,8 +3,8 @@ import { string } from 'rollup-plugin-string';
 import terser from '@rollup/plugin-terser';
 import babel from '@rollup/plugin-babel';
 
-export default {
-  input: 'dist/index.js',
+const config = {
+  input: 'dist/nabucasa-zigbee-flasher.js',
   output: {
     dir: 'dist/web',
     format: 'module',
@@ -33,3 +33,5 @@ if (process.env.NODE_ENV === 'production') {
     })
   );
 }
+
+export default config;
