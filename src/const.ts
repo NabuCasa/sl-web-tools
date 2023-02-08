@@ -8,8 +8,8 @@ export enum ApplicationType {
 
 export const ApplicationNames = {
   [ApplicationType.GECKO_BOOTLOADER]: 'Bootloader (recovery)',
-  [ApplicationType.CPC]: 'CPC',
-  [ApplicationType.EZSP]: 'Zigbee',
+  [ApplicationType.CPC]: 'Multi-PAN (RCP)',
+  [ApplicationType.EZSP]: 'Zigbee (EZSP)',
 };
 
 export enum FirmwareType {
