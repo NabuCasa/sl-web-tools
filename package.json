@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
-    "build": "rimraf dist && rollup -c rollup.config.js && npm run analyze -- --exclude dist",
+    "build": "rimraf dist && rollup -c rollup.config.js",
     "analyze": "cem analyze --litelement"
   },
   "main": "./dist/index.js",
