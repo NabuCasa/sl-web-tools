@@ -200,7 +200,6 @@ export class FlashingDialog extends LitElement {
       this.serialPort = undefined;
       this.flashingStep = FlashingStep.PORT_SELECTION_CANCELLED;
       return;
-      return;
     }
 
     this.mwcDialog.open = true;
