@@ -425,9 +425,9 @@ export class FlashingDialog extends LitElement {
                   >Silicon Labs CP2102 driver</a
                 >
                 and re-connect to the serial port titled
-                <code
+                <strong
                   >CP210x USB to UART Bridge Controller
-                  (cu.SLAB_USBtoUART)</code
+                  (cu.SLAB_USBtoUART)</strong
                 >. The other ports will not work!
               </p>
             </section>`
