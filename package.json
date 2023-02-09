@@ -3,7 +3,7 @@
   "description": "WebSerial firmware flasher for Silicon Labs Zigbee radios",
   "license": "MIT",
   "author": "puddly",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "scripts": {
     "lint": "eslint --ext .ts,.html src --ignore-path .gitignore && prettier \"src/**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts,.html src --fix --ignore-path .gitignore && prettier \"src/**/*.ts\" --write --ignore-path .gitignore",
