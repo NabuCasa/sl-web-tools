@@ -10,7 +10,7 @@ import '@material/mwc-formfield';
 import '@material/mwc-radio';
 import '@material/mwc-dialog';
 
-import { mdiChip, mdiShimmer, mdiAutorenew, mdiClose } from '@mdi/js';
+import { mdiChip, mdiShimmer, mdiAutorenew, mdiClose, mdiAlert } from '@mdi/js';
 import './usf-icon';
 import './usf-icon-button';
 import './usf-file-upload';
@@ -113,6 +113,22 @@ export class FlashingDialog extends LitElement {
 
     td usf-icon {
       vertical-align: bottom;
+    }
+
+    section.warning {
+      border: 1px solid hsl(38deg, 98%, 85%);
+      border-radius: 1em;
+      padding: 1em;
+      background: hsl(38deg, 98%, 90%);
+      font-size: 0.9em;
+    }
+
+    section.warning h2 usf-icon {
+      vertical-align: text-bottom;
+    }
+
+    section.warning code {
+      font-weight: bold;
     }
   `;
 
@@ -389,8 +405,34 @@ export class FlashingDialog extends LitElement {
         </p>
       </p>`;
     } else if (this.flashingStep === FlashingStep.PROBING_FAILED) {
+      const isMacOS = navigator.userAgent.includes('Mac OS');
+      const isUsingCP210x = this.manifest.usb_filters.find(
+        filter => filter.vid == 4292 && filter.pid == 60000
+      );
+
       headingText = 'Connection failed';
-      content = html`<p>The running firmware could not be detected.</p>
+      content = html`${isMacOS && isUsingCP210x
+          ? html`<section class="warning">
+              <h2><usf-icon .icon=${mdiAlert}></usf-icon> macOS Driver Bug</h2>
+
+              <p>
+                The built-in drivers on macOS do not work properly with the
+                ${this.manifest.product_name}. Install the updated
+                <a
+                  href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  >Silicon Labs CP2102 driver</a
+                >
+                and re-connect to the serial port titled
+                <code
+                  >CP210x USB to UART Bridge Controller
+                  (cu.SLAB_USBtoUART)</code
+                >. The other ports will not work!
+              </p>
+            </section>`
+          : ''}
+        <p>The running firmware could not be detected.</p>
 
         <p>
           Make sure the USB port works and if you are using a USB extension
