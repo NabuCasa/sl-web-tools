@@ -5,8 +5,8 @@
   "author": "puddly",
   "version": "0.9.3",
   "scripts": {
-    "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
-    "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
+    "lint": "eslint --ext .ts,.html src --ignore-path .gitignore && prettier \"src/**/*.ts\" --check --ignore-path .gitignore",
+    "format": "eslint --ext .ts,.html src --fix --ignore-path .gitignore && prettier \"src/**/*.ts\" --write --ignore-path .gitignore",
     "build": "script/build",
     "prepublishOnly": "npm run build",
     "analyze": "cem analyze --litelement"
