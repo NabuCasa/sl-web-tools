@@ -116,11 +116,17 @@ export class FlashingDialog extends LitElement {
     }
 
     section.warning {
-      border: 1px solid hsl(38deg, 98%, 85%);
-      border-radius: 1em;
-      padding: 1em;
-      background: hsl(38deg, 98%, 90%);
+      background-color: hsl(38, 96%, 90%);
+
       font-size: 0.9em;
+
+      margin-left: -24px;
+      margin-right: -24px;
+
+      padding-left: 24px;
+      padding-right: 24px;
+      padding-top: 12px;
+      padding-bottom: 12px;
     }
 
     section.warning h2 usf-icon {
@@ -428,7 +434,7 @@ export class FlashingDialog extends LitElement {
                 <strong
                   >CP210x USB to UART Bridge Controller
                   (cu.SLAB_USBtoUART)</strong
-                >. The other ports will not work!
+                >.
               </p>
             </section>`
           : ''}
