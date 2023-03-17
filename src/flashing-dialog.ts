@@ -269,10 +269,10 @@ export class FlashingDialog extends LitElement {
 
     this.pyFlasher = Flasher.callKwargs({
       baudrates: new Map([
-        ['bootloader', this.manifest.bootloader_baudrate],
-        ['cpc', this.manifest.cpc_baudrate],
-        ['ezsp', this.manifest.ezsp_baudrate],
-        ['spinel', this.manifest.spinel_baudrate],
+        ['bootloader', this.manifest.baudrates.bootloader],
+        ['cpc', this.manifest.baudrates.cpc],
+        ['ezsp', this.manifest.baudrates.ezsp],
+        ['spinel', this.manifest.baudrates.spinel],
       ]),
       device: '/dev/webserial', // the device name is ignored
     });
