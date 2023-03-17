@@ -269,7 +269,10 @@ export class FlashingDialog extends LitElement {
 
     this.pyFlasher = Flasher.callKwargs({
       bootloader_baudrate: this.manifest.bootloader_baudrate,
-      app_baudrate: this.manifest.application_baudrate,
+      cpc_baudrate: this.manifest.cpc_baudrate,
+      ezsp_baudrate: this.manifest.ezsp_baudrate,
+      spinel_baudrate: this.manifest.spinel_baudrate,
+      app_baudrate: this.manifest.application_baudrate, // deprecated
       device: '/dev/webserial', // the device name is ignored
     });
 

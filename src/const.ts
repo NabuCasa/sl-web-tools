@@ -64,7 +64,12 @@ export interface Firmware {
 export interface Manifest {
   product_name: string;
   bootloader_baudrate: number;
-  application_baudrate: number;
+
+  cpc_baudrate: number;
+  ezsp_baudrate: number;
+  spinel_baudrate: number;
+  application_baudrate: number; // deprecated
+
   usb_filters: USBFilter[];
   firmwares: Firmware[];
   allow_custom_firmware_upload: boolean;
