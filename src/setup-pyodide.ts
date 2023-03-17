@@ -66,7 +66,7 @@ export async function setupPyodide(
 
   // Install dependencies
   await micropip.install([
-    flasherPackagePath || 'universal-silabs-flasher==0.0.9',
+    flasherPackagePath || 'universal-silabs-flasher==0.0.10',
   ]);
 
   onStateChange(PyodideLoadState.INSTALLING_TRANSPORT);
