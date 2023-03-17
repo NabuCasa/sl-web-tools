@@ -18,6 +18,10 @@ export class NabuCasaSilabsFlasher extends LitElement {
       console.error(
         'The `application_baudrate` manifest attribute is deprecated and has been replaced with `cpc_baudrate`, `ezsp_baudrate`, and `spinel_baudrate`. It will be removed in a future release, please update your manifest.'
       );
+
+      manifest.cpc_baudrate ??= manifest.application_baudrate;
+      manifest.ezsp_baudrate ??= manifest.application_baudrate;
+      manifest.spinel_baudrate ??= manifest.application_baudrate;
     }
 
     const dialog = document.createElement('flashing-dialog');
