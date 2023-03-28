@@ -1,10 +1,10 @@
 {
 	"product_name": "Home Assistant SkyConnect",
 	"baudrates": {
-		"bootloader": 115200,
-		"cpc": 115200,
-		"ezsp": 115200,
-		"spinel": 460800,
+		"bootloader": [115200],
+		"cpc": [460800, 115200, 230400],
+		"ezsp": [115200],
+		"spinel": [460800],
 	},
 	"usb_filters": [
 		{

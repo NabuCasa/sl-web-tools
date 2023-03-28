@@ -62,10 +62,10 @@ export interface Firmware {
 }
 
 export interface ManifestBaudrates {
-  bootloader: number;
-  cpc: number;
-  ezsp: number;
-  spinel: number;
+  bootloader: number[];
+  cpc: number[];
+  ezsp: number[];
+  spinel: number[];
 }
 
 export interface Manifest {
