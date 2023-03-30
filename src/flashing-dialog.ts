@@ -263,19 +263,46 @@ export class FlashingDialog extends LitElement {
       .pyimport('webserial_transport')
       .set_global_serial_port(this.serialPort);
 
-    const { Flasher } = this.pyodide.pyimport(
-      'universal_silabs_flasher.flasher'
-    );
+    const PyApplicationType = this.pyodide.pyimport(
+      'universal_silabs_flasher.const'
+    ).ApplicationType;
 
-    this.pyFlasher = Flasher.callKwargs({
-      baudrates: new Map([
-        ['bootloader', this.manifest.baudrates.bootloader],
-        ['cpc', this.manifest.baudrates.cpc],
-        ['ezsp', this.manifest.baudrates.ezsp],
-        ['spinel', this.manifest.baudrates.spinel],
-      ]),
-      device: '/dev/webserial', // the device name is ignored
-    });
+    // Pyodide currently seems to have issues passing double proxied objects, especially
+    // with list comprehensions and generators. Until this is fixed, we need to
+    // explicitly convert the types with a wrapper function.
+    this.pyFlasher = this.pyodide
+      .runPython(
+        `
+      from universal_silabs_flasher.flasher import Flasher
+
+      def create_flasher(baudrates, probe_methods, device):
+          return Flasher(
+              baudrates=baudrates.to_py(),
+              probe_methods=probe_methods.to_py(),
+              device=device,
+          )
+
+      create_flasher
+    `
+      )
+      .callKwargs({
+        baudrates: new Map([
+          [
+            PyApplicationType.GECKO_BOOTLOADER,
+            this.manifest.baudrates.bootloader,
+          ],
+          [PyApplicationType.CPC, this.manifest.baudrates.cpc],
+          [PyApplicationType.EZSP, this.manifest.baudrates.ezsp],
+          [PyApplicationType.SPINEL, this.manifest.baudrates.spinel],
+        ]),
+        probe_methods: [
+          PyApplicationType.GECKO_BOOTLOADER,
+          PyApplicationType.CPC,
+          PyApplicationType.EZSP,
+          PyApplicationType.SPINEL,
+        ],
+        device: '/dev/webserial', // the device name is ignored
+      });
 
     await this.detectRunningFirmware();
   }
