@@ -202,11 +202,11 @@ export class FlashingDialog extends LitElement {
           </tr>
           <tr>
             <th>SDK Version</th>
-            <td>${metadata.sdk_version}</td>
+            <td>${this.simpleVersion(metadata.sdk_version)}</td>
           </tr>
           <tr>
             <th>EZSP Version</th>
-            <td>${metadata.ezsp_version || '-'}</td>
+            <td>${this.simpleVersion(metadata.ezsp_version) || '-'}</td>
           </tr>
         </tbody>
       </table>
@@ -374,6 +374,15 @@ export class FlashingDialog extends LitElement {
     return text + '\u00A0'.repeat(8);
   }
 
+  private simpleVersion(version: any) {
+    if (!version) {
+      return null;
+    }
+    return Array.from(version.components)
+      .map((c: any) => c.data)
+      .join('');
+  }
+
   render() {
     let content = html``;
     let headingText = 'Connecting';
@@ -486,16 +495,18 @@ export class FlashingDialog extends LitElement {
       showDebugLogButton = false;
       headingText = this.manifest.product_name;
 
-      const AwesomeVersion =
-        this.pyodide.pyimport('awesomeversion').AwesomeVersion;
+      const { Version } = this.pyodide.pyimport(
+        'universal_silabs_flasher.common'
+      );
 
       const appType: ApplicationType = this.pyFlasher.app_type.value;
-      const appVersion = AwesomeVersion(this.pyFlasher.app_version);
-
       const compatibleFirmwareType: FirmwareType | undefined =
         ApplicationTypeToFirmwareType[appType];
       const compatibleFirmware = this.manifest.firmwares.find(
-        fw => fw.type === compatibleFirmwareType && fw.version > appVersion
+        fw =>
+          fw.type === compatibleFirmwareType &&
+          Version(fw.version) > this.pyFlasher.app_version &&
+          !Version(fw.version).compatible_with(this.pyFlasher.app_version)
       );
 
       // Show a one-click "upgrade" button if possible
@@ -525,9 +536,9 @@ export class FlashingDialog extends LitElement {
             <tbody>
               <tr>
                 <td><usf-icon .icon=${mdiFirmware}></usf-icon></td>
-                <td>${ApplicationNames[appType] || 'unknown'} ${
-        this.pyFlasher.app_version
-      }</td>
+                <td>${
+                  ApplicationNames[appType] || 'unknown'
+                } ${this.simpleVersion(this.pyFlasher.app_version)}</td>
               </tr>
               <tr>
                 <td><usf-icon .icon=${mdiChip}></usf-icon></td>
