@@ -4,7 +4,7 @@
 		"bootloader": [115200],
 		"cpc": [460800, 115200, 230400],
 		"ezsp": [115200],
-		"spinel": [460800],
+		"spinel": [460800]
 	},
 	"usb_filters": [
 		{
@@ -27,7 +27,7 @@
 		},
 		{
 			"name": "OpenThread",
-			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/OpenThreadRCP/NabuCasa_SkyConnect_OpenThread_RCP_v2.2.2.0_PA32_ot-rcp_hw_460800.gbl",
+			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/OpenThreadRCP/NabuCasa_SkyConnect_OpenThread_RCP_v2.2.2.0_ot-rcp_hw_460800.gbl",
 			"type": "ot-rcp",
 			"version": "2.2.2.0"
 		}
