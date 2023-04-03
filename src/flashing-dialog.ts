@@ -202,11 +202,11 @@ export class FlashingDialog extends LitElement {
           </tr>
           <tr>
             <th>SDK Version</th>
-            <td>${metadata.sdk_version}</td>
+            <td>${this.simpleVersion(metadata.sdk_version)}</td>
           </tr>
           <tr>
             <th>EZSP Version</th>
-            <td>${metadata.ezsp_version || '-'}</td>
+            <td>${this.simpleVersion(metadata.ezsp_version) || '-'}</td>
           </tr>
         </tbody>
       </table>
@@ -263,15 +263,46 @@ export class FlashingDialog extends LitElement {
       .pyimport('webserial_transport')
       .set_global_serial_port(this.serialPort);
 
-    const { Flasher } = this.pyodide.pyimport(
-      'universal_silabs_flasher.flasher'
-    );
+    const PyApplicationType = this.pyodide.pyimport(
+      'universal_silabs_flasher.const'
+    ).ApplicationType;
 
-    this.pyFlasher = Flasher.callKwargs({
-      bootloader_baudrate: this.manifest.bootloader_baudrate,
-      app_baudrate: this.manifest.application_baudrate,
-      device: '/dev/webserial', // the device name is ignored
-    });
+    // Pyodide currently seems to have issues passing double proxied objects, especially
+    // with list comprehensions and generators. Until this is fixed, we need to
+    // explicitly convert the types with a wrapper function.
+    this.pyFlasher = this.pyodide
+      .runPython(
+        `
+      from universal_silabs_flasher.flasher import Flasher
+
+      def create_flasher(baudrates, probe_methods, device):
+          return Flasher(
+              baudrates=baudrates.to_py(),
+              probe_methods=probe_methods.to_py(),
+              device=device,
+          )
+
+      create_flasher
+    `
+      )
+      .callKwargs({
+        baudrates: new Map([
+          [
+            PyApplicationType.GECKO_BOOTLOADER,
+            this.manifest.baudrates.bootloader,
+          ],
+          [PyApplicationType.CPC, this.manifest.baudrates.cpc],
+          [PyApplicationType.EZSP, this.manifest.baudrates.ezsp],
+          [PyApplicationType.SPINEL, this.manifest.baudrates.spinel],
+        ]),
+        probe_methods: [
+          PyApplicationType.GECKO_BOOTLOADER,
+          PyApplicationType.CPC,
+          PyApplicationType.EZSP,
+          PyApplicationType.SPINEL,
+        ],
+        device: '/dev/webserial', // the device name is ignored
+      });
 
     await this.detectRunningFirmware();
   }
@@ -341,6 +372,15 @@ export class FlashingDialog extends LitElement {
 
     // FIXME: this moves the closing `x` out of the way
     return text + '\u00A0'.repeat(8);
+  }
+
+  private simpleVersion(version: any) {
+    if (!version) {
+      return null;
+    }
+    return Array.from(version.components)
+      .map((c: any) => c.data)
+      .join('');
   }
 
   render() {
@@ -455,16 +495,18 @@ export class FlashingDialog extends LitElement {
       showDebugLogButton = false;
       headingText = this.manifest.product_name;
 
-      const AwesomeVersion =
-        this.pyodide.pyimport('awesomeversion').AwesomeVersion;
+      const { Version } = this.pyodide.pyimport(
+        'universal_silabs_flasher.common'
+      );
 
       const appType: ApplicationType = this.pyFlasher.app_type.value;
-      const appVersion = AwesomeVersion(this.pyFlasher.app_version);
-
       const compatibleFirmwareType: FirmwareType | undefined =
         ApplicationTypeToFirmwareType[appType];
       const compatibleFirmware = this.manifest.firmwares.find(
-        fw => fw.type === compatibleFirmwareType && fw.version > appVersion
+        fw =>
+          fw.type === compatibleFirmwareType &&
+          Version(fw.version) > this.pyFlasher.app_version &&
+          !Version(fw.version).compatible_with(this.pyFlasher.app_version)
       );
 
       // Show a one-click "upgrade" button if possible
@@ -494,9 +536,9 @@ export class FlashingDialog extends LitElement {
             <tbody>
               <tr>
                 <td><usf-icon .icon=${mdiFirmware}></usf-icon></td>
-                <td>${ApplicationNames[appType] || 'unknown'} ${
-        this.pyFlasher.app_version
-      }</td>
+                <td>${
+                  ApplicationNames[appType] || 'unknown'
+                } ${this.simpleVersion(this.pyFlasher.app_version)}</td>
               </tr>
               <tr>
                 <td><usf-icon .icon=${mdiChip}></usf-icon></td>

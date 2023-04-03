@@ -1,7 +1,11 @@
 {
 	"product_name": "Home Assistant SkyConnect",
-	"bootloader_baudrate": 115200,
-	"application_baudrate": 115200,
+	"baudrates": {
+		"bootloader": [115200],
+		"cpc": [460800, 115200, 230400],
+		"ezsp": [115200],
+		"spinel": [460800]
+	},
 	"usb_filters": [
 		{
 			"pid": 60000,
@@ -20,6 +24,12 @@
 			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/RCPMultiPAN/NabuCasa_SkyConnect_RCP_v4.1.4_rcp-uart-hw-802154_115200.gbl",
 			"type": "rcp-uart-802154",
 			"version": "4.1.4"
+		},
+		{
+			"name": "OpenThread",
+			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/OpenThreadRCP/NabuCasa_SkyConnect_OpenThread_RCP_v2.2.2.0_ot-rcp_hw_460800.gbl",
+			"type": "ot-rcp",
+			"version": "2.2.2.0"
 		}
 	],
 	"allow_custom_firmware_upload": true
