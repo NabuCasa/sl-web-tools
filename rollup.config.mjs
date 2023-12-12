@@ -19,6 +19,9 @@ const config = {
     string({
       include: '**/*.py',
     }),
+    string({
+      include: '**/requirements.txt',
+    }),
   ],
 };
 

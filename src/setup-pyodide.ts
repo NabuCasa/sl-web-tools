@@ -1,5 +1,39 @@
 import dummyModuleLoaderPy from './dummy_module_loader.py';
+import venvRequirementsTxt from './requirements.txt';
 import webSerialTransportPy from './webserial_transport.py';
+
+interface PythonPackageSpec {
+  // The PyPI package name can differ from the module name
+  package: string;
+  module: string;
+  version?: string;
+}
+
+const MOCKED_MODULES: PythonPackageSpec[] = [
+  // These dependencies shouldn't be mocked
+  // {package: 'async-timeout', module: 'async_timeout'},
+  // {package: 'coloredlogs', module: 'coloredlogs'},
+  // {package: 'humanfriendly', module: 'humanfriendly'},
+
+  // Dependencies and sub-dependencies
+  { package: 'aiosignal', module: 'aiosignal' },
+  { package: 'aiohttp', module: 'aiohttp' },
+  { package: 'cffi', module: 'cffi' },
+  { package: 'aiosqlite', module: 'aiosqlite' },
+  { package: 'cryptography', module: 'cryptography' },
+  { package: 'frozenlist', module: 'frozenlist' },
+  { package: 'multidict', module: 'multidict' },
+  { package: 'pycparser', module: 'pycparser' },
+  { package: 'yarl', module: 'yarl' },
+  { package: 'click', module: 'click' },
+  { package: 'click-log', module: 'click-log' },
+  { package: 'pure-pcapy3', module: 'pure_pcapy3' },
+  { package: 'idna', module: 'idna' },
+  { package: 'typing_extensions', module: 'typing_extensions' },
+
+  // Internal modules not bundled by default with pyodide
+  { package: 'ssl', module: 'ssl', version: '1.0.0' },
+];
 
 export type Pyodide = any;
 
@@ -20,7 +54,7 @@ async function loadPyodide(): Promise<Pyodide> {
       resolve(pyodide);
     };
 
-    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.22.0/full/pyodide.js';
+    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js';
     document.body.appendChild(script);
   });
 }
@@ -32,11 +66,16 @@ function writeModule(pyodide: Pyodide, moduleName: string, contents: string) {
   });
 }
 
-interface PythonPackageSpec {
-  // The PyPI package name can differ from the module name
-  package: string;
-  module: string;
-  version: string;
+function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
+  const lines = requirementsTxt.trim().split('\n');
+  const packages = new Map<string, string>();
+
+  for (const line of lines) {
+    const [pkg, version] = line.split('==');
+    packages.set(pkg, version);
+  }
+
+  return packages;
 }
 
 export async function setupPyodide(
@@ -49,23 +88,31 @@ export async function setupPyodide(
   await pyodide.loadPackage('micropip');
   const micropip = pyodide.pyimport('micropip');
 
-  // Mock a few packages to significantly reduce dependencies
-  for (const spec of [
-    { package: 'aiohttp', module: 'aiohttp', version: '999.0.0' },
-    { package: 'pure_pcapy3', module: 'pure_pcapy', version: '1.0.1' },
-    { package: 'cryptography', module: 'cryptography', version: '999.0.0' },
-    { package: 'ssl', module: 'ssl', version: '999.0.0' },
-  ] as PythonPackageSpec[]) {
+  const requirementsTxt = parseRequirementsTxt(venvRequirementsTxt);
+
+  // Mock unnecessary packages to significantly reduce the download size
+  for (const mod of MOCKED_MODULES) {
     micropip.add_mock_package.callKwargs({
-      name: spec.package,
-      version: spec.version,
-      persistent: true,
-      modules: new Map([[spec.module, dummyModuleLoaderPy]]),
+      name: mod.package,
+      version: mod.version || requirementsTxt.get(mod.package),
+      modules: new Map([[mod.module, dummyModuleLoaderPy]]),
     });
   }
 
-  // Install dependencies
-  await micropip.install(['universal-silabs-flasher==0.0.12']);
+  // Filter mocked packages from requirements
+  const requirements: string[] = [];
+
+  for (const [pkg, version] of requirementsTxt) {
+    if (!MOCKED_MODULES.find(m => m.package === pkg)) {
+      requirements.push(`${pkg}==${version}`);
+    }
+  }
+
+  // Install all packages to recreate the venv
+  await micropip.install.callKwargs({
+    requirements: requirements,
+    deps: false,
+  });
 
   onStateChange(PyodideLoadState.INSTALLING_TRANSPORT);
   // Prepare the Python path for external modules
