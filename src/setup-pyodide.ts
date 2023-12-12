@@ -40,8 +40,7 @@ interface PythonPackageSpec {
 }
 
 export async function setupPyodide(
-  onStateChange: (newState: PyodideLoadState) => any,
-  flasherPackagePath?: string
+  onStateChange: (newState: PyodideLoadState) => any
 ): Promise<Pyodide> {
   onStateChange(PyodideLoadState.LOADING_PYODIDE);
   const pyodide = await loadPyodide();
@@ -66,10 +65,7 @@ export async function setupPyodide(
   }
 
   // Install dependencies
-  await micropip.install([
-    'ssl',
-    flasherPackagePath || 'universal-silabs-flasher==0.0.12',
-  ]);
+  await micropip.install(['universal-silabs-flasher==0.0.12']);
 
   onStateChange(PyodideLoadState.INSTALLING_TRANSPORT);
   // Prepare the Python path for external modules
