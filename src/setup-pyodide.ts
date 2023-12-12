@@ -55,6 +55,7 @@ export async function setupPyodide(
     { package: 'aiohttp', module: 'aiohttp', version: '999.0.0' },
     { package: 'pure_pcapy3', module: 'pure_pcapy', version: '1.0.1' },
     { package: 'cryptography', module: 'cryptography', version: '999.0.0' },
+    { package: 'ssl', module: 'ssl', version: '999.0.0' },
   ] as PythonPackageSpec[]) {
     micropip.add_mock_package.callKwargs({
       name: spec.package,
@@ -66,6 +67,7 @@ export async function setupPyodide(
 
   // Install dependencies
   await micropip.install([
+    'ssl',
     flasherPackagePath || 'universal-silabs-flasher==0.0.12',
   ]);
 
