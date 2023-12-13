@@ -26,7 +26,7 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
   { package: 'pycparser', module: 'pycparser' },
   { package: 'yarl', module: 'yarl' },
   { package: 'click', module: 'click' },
-  { package: 'click-log', module: 'click-log' },
+  { package: 'click-log', module: 'click_log' },
   { package: 'pure-pcapy3', module: 'pure_pcapy3' },
   { package: 'idna', module: 'idna' },
   { package: 'typing_extensions', module: 'typing_extensions' },
