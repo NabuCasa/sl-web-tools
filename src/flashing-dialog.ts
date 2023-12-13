@@ -440,7 +440,7 @@ export class FlashingDialog extends LitElement {
               this.pyodideLoadState === PyodideLoadState.LOADING_PYODIDE ||
               this.flashingStep === FlashingStep.PROBING
             }
-            .progress=${this.pyodideLoadState / 6}
+            .progress=${this.pyodideLoadState / (2 * PyodideLoadState.READY)}
           >
           </mwc-circular-progress>
         </p>
