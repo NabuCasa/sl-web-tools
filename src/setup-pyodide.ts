@@ -40,8 +40,7 @@ export type Pyodide = any;
 export enum PyodideLoadState {
   LOADING_PYODIDE = 0,
   INSTALLING_DEPENDENCIES = 1,
-  INSTALLING_TRANSPORT = 2,
-  READY = 3,
+  READY = 2,
 }
 
 async function loadPyodide(): Promise<Pyodide> {
@@ -59,18 +58,10 @@ async function loadPyodide(): Promise<Pyodide> {
   });
 }
 
-function writeModule(pyodide: Pyodide, moduleName: string, contents: string) {
-  pyodide.FS.mkdir('modules');
-  pyodide.FS.writeFile(`modules/${moduleName}.py`, contents, {
-    encoding: 'utf8',
-  });
-}
-
 function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
-  const lines = requirementsTxt.trim().split('\n');
   const packages = new Map<string, string>();
 
-  for (const line of lines) {
+  for (const line of requirementsTxt.trim().split('\n')) {
     const [pkg, version] = line.split('==');
     packages.set(pkg, version);
   }
@@ -99,6 +90,13 @@ export async function setupPyodide(
     });
   }
 
+  // Include our webserial transport
+  micropip.add_mock_package.callKwargs({
+    name: 'webserial_transport',
+    version: '1.0.0',
+    modules: new Map([['webserial_transport', webSerialTransportPy]]),
+  });
+
   // Filter mocked packages from requirements
   const requirements: string[] = [];
 
@@ -114,24 +112,10 @@ export async function setupPyodide(
     deps: false,
   });
 
-  onStateChange(PyodideLoadState.INSTALLING_TRANSPORT);
-  // Prepare the Python path for external modules
-  pyodide.runPython(`
-    import coloredlogs
-    coloredlogs.install(level="DEBUG")
+  // Set up debug logging
+  const coloredlogs = pyodide.pyimport('coloredlogs');
+  coloredlogs.install.callKwargs({ level: 'DEBUG' });
 
-    import sys
-    sys.path.insert(0, "./modules/")
-  `);
-
-  // Include our webserial transport
-  writeModule(pyodide, 'webserial_transport', webSerialTransportPy);
-
-  // And run it
-  pyodide.runPython(`
-    import webserial_transport
-    webserial_transport.patch_pyserial()
-  `);
   onStateChange(PyodideLoadState.READY);
 
   return pyodide;
