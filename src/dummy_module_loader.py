@@ -18,4 +18,8 @@ class DummyFinder:
         return sys.modules.setdefault(fullname, unittest.mock.MagicMock(__path__=[]))
 
 
+def __getattr__(name):
+    return unittest.mock.MagicMock()
+
+
 sys.meta_path.append(DummyFinder(__name__))

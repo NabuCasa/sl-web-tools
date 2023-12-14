@@ -6,4 +6,5 @@ cd "$(dirname "$0")/.."
 rm -rf dist
 NODE_ENV=production npm exec -- tsc
 cp src/*.py dist
+cp src/requirements.txt dist
 NODE_ENV=production npm exec -- rollup -c

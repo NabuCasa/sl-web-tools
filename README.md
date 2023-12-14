@@ -17,3 +17,19 @@ Create a manifest to customize the flasher for your device and include the web c
   <span slot="button">Connect</span>
 </nabucasa-zigbee-flasher>
 ```
+
+## Building
+
+To recreate `src/requirements.txt`, recompute dependencies with pip:
+
+```bash
+python -m venv venv
+venv/bin/pip install -r requirements.txt
+venv/bin/pip freeze > src/requirements.txt
+```
+
+Finally, build with `npm`:
+
+```
+npm run build
+```

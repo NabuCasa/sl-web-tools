@@ -19,23 +19,19 @@ try:
 except ImportError:
     sys.modules["termios"] = object()  # type: ignore[assignment]
 
-import serial_asyncio
-
-
-async def make_coroutine(call: collections.abc.Awaitable) -> collections.abc.Coroutine:
-    """Turns an awaitable into an actual coroutine."""
-    return await call
-
-
-def patch_pyserial() -> None:
-    """Patch pyserial-asyncio to use a WebSerial transport."""
-    serial_asyncio.create_serial_connection = create_serial_connection
-
 
 _SERIAL_PORT = None
-_SERIAL_PORT_CLOSING_TASK: asyncio.Task | None = None
+_SERIAL_PORT_CLOSING_QUEUE = []
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def close_port(port: Any) -> None:
+    _LOGGER.debug("Closing serial port")
+    # XXX: `port.close` isn't a coroutine, it's an awaitable, so it cannot be directly
+    # passed into `asyncio.create_task()`
+    await port.close()
+    _LOGGER.debug("Closed serial port")
 
 
 class WebSerialTransport(asyncio.Transport):
@@ -99,8 +95,6 @@ class WebSerialTransport(asyncio.Transport):
     def _cleanup(self, exception: BaseException | None) -> None:
         self._is_closing = True
 
-        global _SERIAL_PORT_CLOSING_TASK
-
         self._reader_task.cancel()
         self._writer_task.cancel()
 
@@ -113,8 +107,8 @@ class WebSerialTransport(asyncio.Transport):
             self._js_writer = None
 
         if self._port is not None:
-            _SERIAL_PORT_CLOSING_TASK = asyncio.create_task(
-                make_coroutine(self._port.close())
+            _SERIAL_PORT_CLOSING_QUEUE.append(
+                asyncio.create_task(close_port(self._port))
             )
             self._port = None
 
@@ -142,14 +136,11 @@ async def create_serial_connection(
     rtscts=False,
     xonxoff=False,
 ) -> tuple[WebSerialTransport, asyncio.Protocol]:
-    global _SERIAL_PORT_CLOSING_TASK
-
     # XXX: Since asyncio's `transport.close` is synchronous but JavaScript's is not, we
     # must delegate closing to a task and then "block" at the next asynchronous entry
-    # point
-    if _SERIAL_PORT_CLOSING_TASK is not None:
-        await _SERIAL_PORT_CLOSING_TASK
-        _SERIAL_PORT_CLOSING_TASK = None
+    # point to allow the serial port to be re-opened immediately after being closed
+    while _SERIAL_PORT_CLOSING_QUEUE:
+        await _SERIAL_PORT_CLOSING_QUEUE.pop()
 
     # `url` is ignored, `_SERIAL_PORT` is used instead
     await _SERIAL_PORT.open(
@@ -161,3 +152,9 @@ async def create_serial_connection(
     transport = WebSerialTransport(loop, protocol, _SERIAL_PORT)
 
     return transport, protocol
+
+
+# Directly patch pyserial-asyncio
+import serial_asyncio
+
+serial_asyncio.create_serial_connection = create_serial_connection
