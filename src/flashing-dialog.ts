@@ -24,6 +24,7 @@ import {
   ApplicationType,
   ApplicationTypeToFirmwareType,
   mdiFirmware,
+  ManifestBaudrates,
 } from './const';
 import { setupPyodide, PyodideLoadState } from './setup-pyodide';
 
@@ -213,6 +214,35 @@ export class FlashingDialog extends LitElement {
     `;
   }
 
+  private generateProbeMethods(PyApplicationType: any) {
+    const baudrates = new Map();
+    const probe_methods: (keyof typeof ApplicationType)[] = [];
+
+    const valueToKeyMap = Object.entries(ApplicationType).reduce(
+      (acc, [key, value]) => {
+        acc[value] = key as keyof typeof ApplicationType;
+        return acc;
+      },
+      {} as Record<ApplicationType, keyof typeof ApplicationType>
+    );
+
+    const baudKeys = Object.keys(this.manifest.baudrates) as Array<
+      keyof ManifestBaudrates
+    >;
+
+    baudKeys.forEach(key => {
+      const pyAppTypeKey = valueToKeyMap[key];
+      const pyAppEnum = PyApplicationType[pyAppTypeKey];
+
+      if (pyAppTypeKey && pyAppEnum) {
+        probe_methods.push(pyAppEnum);
+        baudrates.set(pyAppEnum, this.manifest.baudrates[key]);
+      }
+    });
+
+    return { baudrates, probe_methods };
+  }
+
   private async selectSerialPort() {
     this.flashingStep = FlashingStep.SELECTING_PORT;
     const options: SerialPortRequestOptions = {};
@@ -267,6 +297,10 @@ export class FlashingDialog extends LitElement {
       'universal_silabs_flasher.const'
     ).ApplicationType;
 
+    // Generate probe-methods and baudrates from manifest values
+    const { baudrates, probe_methods } =
+      this.generateProbeMethods(PyApplicationType);
+
     // Pyodide currently seems to have issues passing double proxied objects, especially
     // with list comprehensions and generators. Until this is fixed, we need to
     // explicitly convert the types with a wrapper function.
@@ -286,21 +320,8 @@ export class FlashingDialog extends LitElement {
     `
       )
       .callKwargs({
-        baudrates: new Map([
-          [
-            PyApplicationType.GECKO_BOOTLOADER,
-            this.manifest.baudrates.bootloader,
-          ],
-          [PyApplicationType.CPC, this.manifest.baudrates.cpc],
-          [PyApplicationType.EZSP, this.manifest.baudrates.ezsp],
-          [PyApplicationType.SPINEL, this.manifest.baudrates.spinel],
-        ]),
-        probe_methods: [
-          PyApplicationType.GECKO_BOOTLOADER,
-          PyApplicationType.CPC,
-          PyApplicationType.EZSP,
-          PyApplicationType.SPINEL,
-        ],
+        baudrates: baudrates,
+        probe_methods: probe_methods,
         device: '/dev/webserial', // the device name is ignored
       });
 
