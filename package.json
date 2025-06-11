@@ -99,5 +99,9 @@
       "prettier --write"
     ]
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "overrides": {
+    "minimatch": "5.1.2",
+    "glob": "8.1.0"
+  }
 }
