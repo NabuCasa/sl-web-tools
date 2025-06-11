@@ -280,11 +280,12 @@ export class FlashingDialog extends LitElement {
         `
       from universal_silabs_flasher.flasher import Flasher
 
-      def create_flasher(baudrates, probe_methods, device):
+      def create_flasher(baudrates, probe_methods, device, bootloader_reset):
           return Flasher(
               baudrates=baudrates.to_py(),
               probe_methods=probe_methods.to_py(),
               device=device,
+              bootloader_reset=bootloader_reset,
           )
 
       create_flasher
@@ -309,6 +310,7 @@ export class FlashingDialog extends LitElement {
           PyApplicationType.ROUTER,
         ],
         device: '/dev/webserial', // the device name is ignored
+        bootloader_reset: this.manifest.bootloader_gpio_reset,
       });
 
     await this.detectRunningFirmware();
@@ -320,6 +322,7 @@ export class FlashingDialog extends LitElement {
     try {
       await this.pyFlasher.probe_app_type();
     } catch (e) {
+      console.error('Probing failed: ', e);
       this.pyFlasher = undefined;
       this.serialPort = undefined;
 

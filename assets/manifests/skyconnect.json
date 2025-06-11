@@ -39,5 +39,6 @@
 			"version": "2.2.2.0"
 		}
 	],
-	"allow_custom_firmware_upload": true
+	"allow_custom_firmware_upload": true,
+	"bootloader_gpio_reset": null
 }

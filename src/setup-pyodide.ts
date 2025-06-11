@@ -66,7 +66,16 @@ function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
   const lineEnding = requirementsTxt.includes('\r\n') ? '\r\n' : '\n';
 
   for (const line of requirementsTxt.trim().split(lineEnding)) {
-    const [pkg, version] = line.split('==');
+    let pkg, version;
+
+    if (!line.startsWith('./')) {
+      [pkg, version] = line.split('==');
+    } else {
+      // Local dependencies
+      pkg = line.trim();
+      version = '0.0.0';
+    }
+
     packages.set(pkg, version);
   }
 
@@ -106,7 +115,12 @@ export async function setupPyodide(
 
   for (const [pkg, version] of requirementsTxt) {
     if (!MOCKED_MODULES.find(m => m.package === pkg)) {
-      requirements.push(`${pkg}==${version}`);
+      if (!pkg.startsWith('./')) {
+        requirements.push(`${pkg}==${version}`);
+      } else {
+        const url = new URL(pkg, window.location.href);
+        requirements.push(url.href);
+      }
     }
   }
 

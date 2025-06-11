@@ -83,6 +83,26 @@ class WebSerialTransport(asyncio.Transport):
 
             self._protocol.data_received(bytes(result.value))
 
+    async def set_signals(
+        self, rts: bool | None = None, dtr: bool | None = None, **kwargs: bool | None
+    ) -> None:
+        other_signals = {k: v for k, v in kwargs.items() if v is not None}
+        if other_signals:
+            _LOGGER.warning(
+                "Ignoring unsupported flow control signals: %s", other_signals
+            )
+
+        signals = {}
+
+        if rts is not None:
+            signals["requestToSend"] = rts
+
+        if dtr is not None:
+            signals["dataTerminalReady"] = dtr
+
+        if signals:
+            await self._port.setSignals(**signals)
+
     def write(self, data: bytes) -> None:
         self._write_queue.put_nowait(data)
 
@@ -153,6 +173,8 @@ async def create_serial_connection(
     rtscts=False,
     xonxoff=False,
 ) -> tuple[WebSerialTransport, asyncio.Protocol]:
+    _LOGGER.debug("Opening a serial connection at %d with rtscts=%s", baudrate, rtscts)
+
     while _SERIAL_PORT_CLOSING_TASKS:
         _LOGGER.warning(
             "Serial connection was not closed before a new one was opened!"
@@ -163,7 +185,7 @@ async def create_serial_connection(
     # `url` is ignored, `_SERIAL_PORT` is used instead
     await _SERIAL_PORT.open(
         baudRate=baudrate,
-        flowControl="hardware" if rtscts else None,
+        flowControl="hardware" if rtscts else "none",
     )
 
     protocol = protocol_factory()

@@ -32,6 +32,10 @@ export enum FirmwareType {
   UNKNOWN = 'unknown',
 }
 
+export enum BootloaderGpioReset {
+  RTS_DTR = 'rts_dtr',
+}
+
 export const LegacyTypeToFirmwareType = {
   'ncp-uart-hw': FirmwareType.ZIGBEE_NCP,
   'ncp-uart-sw': FirmwareType.ZIGBEE_NCP,
@@ -91,5 +95,6 @@ export interface Manifest {
   baudrates: ManifestBaudrates;
   usb_filters: USBFilter[];
   firmwares: Firmware[];
+  bootloader_gpio_reset?: BootloaderGpioReset;
   allow_custom_firmware_upload: boolean;
 }
