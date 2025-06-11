@@ -8,13 +8,18 @@ const config = {
   output: {
     dir: 'dist/web',
     format: 'module',
+    manualChunks(id) {
+      if (id.includes('node_modules')) {
+        return 'vendor';
+      }
+    },
   },
   preserveEntrySignatures: false,
   plugins: [
     nodeResolve(),
     babel({
       babelHelpers: 'bundled',
-      plugins: ['@babel/plugin-proposal-class-properties'],
+      plugins: ['@babel/plugin-transform-class-properties'],
     }),
     string({
       include: '**/*.py',
