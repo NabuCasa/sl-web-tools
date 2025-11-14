@@ -62,6 +62,13 @@ async function loadPyodide(): Promise<Pyodide> {
 }
 
 function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
+  // Decode base64 URIs used by some bundlers
+  if (requirementsTxt.startsWith('data:text/plain;base64,')) {
+    requirementsTxt = atob(
+      requirementsTxt.substring('data:text/plain;base64,'.length)
+    );
+  }
+
   const packages = new Map<string, string>();
   const lineEnding = requirementsTxt.includes('\r\n') ? '\r\n' : '\n';
 
