@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state, property, query } from 'lit/decorators.js';
-import type { Pyodide } from './setup-pyodide';
+import type { PyodideInterface } from 'pyodide';
 
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
@@ -143,7 +143,7 @@ export class FlashingDialog extends LitElement {
   private flashingStep: FlashingStep = FlashingStep.IDLE;
 
   @property()
-  public pyodide?: Pyodide;
+  public pyodide?: PyodideInterface;
 
   @state()
   private pyodideLoadState: PyodideLoadState = PyodideLoadState.LOADING_PYODIDE;
@@ -249,14 +249,16 @@ export class FlashingDialog extends LitElement {
   }
 
   private async onPyodideLoaded() {
-    this.pyodide.setStdout({
+    const pyodide = this.pyodide!;
+
+    pyodide.setStdout({
       batched: (msg: string) => {
         console.log(msg);
         this.debugLog += `${msg}\n`;
       },
     });
 
-    this.pyodide.setStderr({
+    pyodide.setStderr({
       batched: (msg: string) => {
         console.warn(msg);
         this.debugLog += `${msg}\n`;
@@ -264,18 +266,18 @@ export class FlashingDialog extends LitElement {
     });
 
     // Set up the flasher
-    this.pyodide
+    pyodide
       .pyimport('webserial_transport')
       .set_global_serial_port(this.serialPort);
 
-    const PyApplicationType = this.pyodide.pyimport(
+    const PyApplicationType = pyodide.pyimport(
       'universal_silabs_flasher.const'
     ).ApplicationType;
 
     // Pyodide currently seems to have issues passing double proxied objects, especially
     // with list comprehensions and generators. Until this is fixed, we need to
     // explicitly convert the types with a wrapper function.
-    this.pyFlasher = this.pyodide
+    this.pyFlasher = pyodide
       .runPython(
         `
       from universal_silabs_flasher.flasher import Flasher
@@ -505,7 +507,7 @@ export class FlashingDialog extends LitElement {
       showDebugLogButton = false;
       headingText = this.manifest.product_name;
 
-      const { Version } = this.pyodide.pyimport(
+      const { Version } = this.pyodide!.pyimport(
         'universal_silabs_flasher.common'
       );
 
@@ -529,7 +531,7 @@ export class FlashingDialog extends LitElement {
             const firmwareData = await response.arrayBuffer();
 
             this.selectedFirmware = await parseFirmwareBuffer(
-              this.pyodide,
+              this.pyodide!,
               firmwareData
             );
             this.flashFirmware();

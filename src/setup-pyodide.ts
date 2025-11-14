@@ -1,7 +1,7 @@
 import dummyModuleLoaderPy from './dummy_module_loader.py';
 import venvRequirementsTxt from './requirements.txt';
 import webSerialTransportPy from './webserial_transport.py';
-import { loadPyodide } from 'pyodide';
+import { loadPyodide, type PyodideInterface } from 'pyodide';
 
 interface PythonPackageSpec {
   // The PyPI package name can differ from the module name
@@ -39,8 +39,6 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
   { package: 'ssl', module: 'ssl', version: '1.0.0' },
 ];
 
-export type Pyodide = any;
-
 export enum PyodideLoadState {
   LOADING_PYODIDE = 0,
   INSTALLING_DEPENDENCIES = 1,
@@ -77,7 +75,7 @@ function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
 
 export async function setupPyodide(
   onStateChange: (newState: PyodideLoadState) => any
-): Promise<Pyodide> {
+): Promise<PyodideInterface> {
   onStateChange(PyodideLoadState.LOADING_PYODIDE);
   const pyodide = await loadPyodide();
 

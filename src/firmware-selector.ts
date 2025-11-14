@@ -3,7 +3,7 @@ import { customElement, state, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { mdiFileUpload } from '@mdi/js';
 
-import type { Pyodide } from './setup-pyodide';
+import type { PyodideInterface } from 'pyodide';
 import { FirmwareIcons } from './const';
 import type { Manifest } from './const';
 import './usf-file-upload';
@@ -28,7 +28,7 @@ async function readFile(file: Blob): Promise<ArrayBuffer> {
 }
 
 export async function parseFirmwareBuffer(
-  pyodide: Pyodide,
+  pyodide: PyodideInterface,
   buffer: ArrayBuffer
 ): Promise<GBLImage> {
   const { GBLImage } = pyodide.pyimport('universal_silabs_flasher.firmware');
@@ -39,7 +39,7 @@ export async function parseFirmwareBuffer(
 @customElement('firmware-selector')
 export class FirmwareSelector extends LitElement {
   @property()
-  public pyodide: Pyodide;
+  public pyodide!: PyodideInterface;
 
   @property()
   public manifest!: Manifest;
