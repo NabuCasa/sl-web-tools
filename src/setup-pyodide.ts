@@ -37,6 +37,7 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
   { package: 'gpiod', module: 'gpiod' },
   { package: 'rpds', module: 'rpds' },
   { package: 'rpds-py', module: 'rpds-py' },
+  { package: 'referencing', module: 'referencing' },
 
   // Internal modules not bundled by default with pyodide
   { package: 'ssl', module: 'ssl', version: '1.0.0' },
