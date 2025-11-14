@@ -32,8 +32,9 @@ export enum FirmwareType {
   UNKNOWN = 'unknown',
 }
 
-export enum BootloaderGpioReset {
+export enum BootloaderReset {
   RTS_DTR = 'rts_dtr',
+  BAUDRATE = 'baudrate',
 }
 
 export const LegacyTypeToFirmwareType = {
@@ -82,19 +83,16 @@ export interface Firmware {
   version: string;
 }
 
-export interface ManifestBaudrates {
-  bootloader: number[];
-  cpc: number[];
-  ezsp: number[];
-  spinel: number[];
-  router: number[];
+export interface ProbeMethod {
+  protocol: ApplicationType;
+  baudrate: number;
 }
 
 export interface Manifest {
   product_name: string;
-  baudrates: ManifestBaudrates;
+  probe_methods: ProbeMethod[];
   usb_filters: USBFilter[];
   firmwares: Firmware[];
-  bootloader_gpio_reset?: BootloaderGpioReset;
+  bootloader_reset: BootloaderReset[];
   allow_custom_firmware_upload: boolean;
 }

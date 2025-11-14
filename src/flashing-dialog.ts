@@ -274,46 +274,26 @@ export class FlashingDialog extends LitElement {
       'universal_silabs_flasher.const'
     ).ApplicationType;
 
-    // Pyodide currently seems to have issues passing double proxied objects, especially
-    // with list comprehensions and generators. Until this is fixed, we need to
-    // explicitly convert the types with a wrapper function.
-    this.pyFlasher = pyodide
-      .runPython(
-        `
-      from universal_silabs_flasher.flasher import Flasher
+    const PyResetTarget = pyodide.pyimport(
+      'universal_silabs_flasher.const'
+    ).ResetTarget;
 
-      def create_flasher(baudrates, probe_methods, device, bootloader_reset):
-          return Flasher(
-              baudrates=baudrates.to_py(),
-              probe_methods=probe_methods.to_py(),
-              device=device,
-              bootloader_reset=bootloader_reset,
-          )
+    const PyFlasher = pyodide.pyimport(
+      'universal_silabs_flasher.flasher'
+    ).Flasher;
 
-      create_flasher
-    `
-      )
-      .callKwargs({
-        baudrates: new Map([
-          [
-            PyApplicationType.GECKO_BOOTLOADER,
-            this.manifest.baudrates.bootloader,
-          ],
-          [PyApplicationType.CPC, this.manifest.baudrates.cpc],
-          [PyApplicationType.EZSP, this.manifest.baudrates.ezsp],
-          [PyApplicationType.SPINEL, this.manifest.baudrates.spinel],
-          [PyApplicationType.ROUTER, this.manifest.baudrates.router],
-        ]),
-        probe_methods: [
-          PyApplicationType.GECKO_BOOTLOADER,
-          PyApplicationType.CPC,
-          PyApplicationType.EZSP,
-          PyApplicationType.SPINEL,
-          PyApplicationType.ROUTER,
-        ],
-        device: '/dev/webserial', // the device name is ignored
-        bootloader_reset: this.manifest.bootloader_gpio_reset,
-      });
+    this.pyFlasher = PyFlasher.callKwargs({
+      probe_methods: pyodide.toPy(
+        this.manifest.probe_methods.map(pm => [
+          PyApplicationType(pm.protocol),
+          pm.baudrate,
+        ])
+      ),
+      device: '/dev/webserial', // the device name is ignored
+      bootloader_reset: pyodide.toPy(
+        this.manifest.bootloader_reset.map(method => PyResetTarget(method))
+      ),
+    });
 
     await this.detectRunningFirmware();
   }

@@ -1,44 +1,58 @@
 {
 	"product_name": "Home Assistant SkyConnect",
-	"baudrates": {
-		"bootloader": [115200],
-		"cpc": [460800, 115200, 230400],
-		"ezsp": [115200],
-		"spinel": [460800],
-		"router": [115200]
-	},
-	"usb_filters": [
-		{
-			"pid": 60000,
-			"vid": 4292
-		}
-	],
-	"firmwares": [
-		{
-			"name": "Zigbee (EZSP)",
-			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/EmberZNet/beta/NabuCasa_SkyConnect_EZSP_v7.1.4.0_ncp-uart-hw_115200.gbl",
-			"type": "zigbee_ncp",
-			"version": "7.1.4.0"
-		},
-		{
-			"name": "Zigbee Router",
-			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/EmberZNet/beta/NabuCasa_SkyConnect_EZSP_v7.1.4.0_router_115200.gbl",
-			"type": "zigbee_router",
-			"version": "7.1.4.0"
-		},
-		{
-			"name": "Multi-PAN (RCP)",
-			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/RCPMultiPAN/NabuCasa_SkyConnect_RCP_v4.1.4_rcp-uart-hw-802154_115200.gbl",
-			"type": "multipan",
-			"version": "4.1.4"
-		},
-		{
-			"name": "OpenThread",
-			"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/OpenThreadRCP/NabuCasa_SkyConnect_OpenThread_RCP_v2.2.2.0_ot-rcp_hw_460800.gbl",
-			"type": "openthread_rcp",
-			"version": "2.2.2.0"
-		}
-	],
+	"probe_methods": [{
+		"protocol": "bootloader",
+		"baudrate": 115200
+	}, {
+		"protocol": "ezsp",
+		"baudrate": 115200
+	}, {
+		"protocol": "spinel",
+		"baudrate": 460800
+	}, {
+		"protocol": "cpc",
+		"baudrate": 460800
+	}, {
+		"protocol": "cpc",
+		"baudrate": 115200
+	}, {
+		"protocol": "cpc",
+		"baudrate": 230400
+	}, {
+		"protocol": "router",
+		"baudrate": 115200
+	}],
+	"usb_filters": [{
+		"pid": 60000,
+		"vid": 4292
+	}, {
+		"pid": 16385,
+		"vid": 12346
+	}, {
+		"pid": 33562,
+		"vid": 12346
+	}],
+	"firmwares": [{
+		"name": "Zigbee (EZSP)",
+		"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/EmberZNet/beta/NabuCasa_SkyConnect_EZSP_v7.1.4.0_ncp-uart-hw_115200.gbl",
+		"type": "zigbee_ncp",
+		"version": "7.1.4.0"
+	}, {
+		"name": "Zigbee Router",
+		"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/EmberZNet/beta/NabuCasa_SkyConnect_EZSP_v7.1.4.0_router_115200.gbl",
+		"type": "zigbee_router",
+		"version": "7.1.4.0"
+	}, {
+		"name": "Multi-PAN (RCP)",
+		"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/RCPMultiPAN/NabuCasa_SkyConnect_RCP_v4.1.4_rcp-uart-hw-802154_115200.gbl",
+		"type": "multipan",
+		"version": "4.1.4"
+	}, {
+		"name": "OpenThread",
+		"url": "https://raw.githubusercontent.com/NabuCasa/silabs-firmware/main/OpenThreadRCP/NabuCasa_SkyConnect_OpenThread_RCP_v2.2.2.0_ot-rcp_hw_460800.gbl",
+		"type": "openthread_rcp",
+		"version": "2.2.2.0"
+	}],
 	"allow_custom_firmware_upload": true,
-	"bootloader_gpio_reset": null
+	"bootloader_reset": ["rts_dtr", "baudrate"]
 }
