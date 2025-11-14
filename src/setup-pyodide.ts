@@ -19,6 +19,7 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
   // Dependencies and sub-dependencies
   { package: 'aiosignal', module: 'aiosignal' },
   { package: 'aiohttp', module: 'aiohttp' },
+  { package: 'aiohappyeyeballs', module: 'aiohappyeyeballs' },
   { package: 'cffi', module: 'cffi' },
   { package: 'aiosqlite', module: 'aiosqlite' },
   { package: 'cryptography', module: 'cryptography' },
@@ -26,6 +27,8 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
   { package: 'multidict', module: 'multidict' },
   { package: 'pycparser', module: 'pycparser' },
   { package: 'yarl', module: 'yarl' },
+  { package: 'jsonschema', module: 'jsonschema' },
+  { package: 'jsonschema-specifications', module: 'jsonschema_specifications' },
   { package: 'click', module: 'click' },
   { package: 'click-log', module: 'click_log' },
   { package: 'pure-pcapy3', module: 'pure_pcapy3' },
@@ -77,7 +80,9 @@ export async function setupPyodide(
   onStateChange: (newState: PyodideLoadState) => any
 ): Promise<PyodideInterface> {
   onStateChange(PyodideLoadState.LOADING_PYODIDE);
-  const pyodide = await loadPyodide();
+  const pyodide = await loadPyodide({
+    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/',
+  });
 
   onStateChange(PyodideLoadState.INSTALLING_DEPENDENCIES);
   await pyodide.loadPackage('micropip');

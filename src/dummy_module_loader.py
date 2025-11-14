@@ -1,5 +1,21 @@
 import sys
 import unittest.mock
+from importlib.machinery import ModuleSpec
+
+
+class DummyLoader:
+    """
+    Loader that creates Mock objects for modules.
+    """
+
+    def create_module(self, spec):
+        return None
+
+    def exec_module(self, module):
+        for attr in dir(unittest.mock.MagicMock):
+            if not attr.startswith('_'):
+                setattr(module, attr, getattr(unittest.mock.MagicMock, attr))
+        module.__path__ = []
 
 
 class DummyFinder:
@@ -9,13 +25,12 @@ class DummyFinder:
 
     def __init__(self, name):
         self.name = name
+        self.loader = DummyLoader()
 
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path, target=None):
         if fullname.startswith(self.name):
-            return self
-
-    def load_module(self, fullname):
-        return sys.modules.setdefault(fullname, unittest.mock.MagicMock(__path__=[]))
+            return ModuleSpec(fullname, self.loader)
+        return None
 
 
 def __getattr__(name):

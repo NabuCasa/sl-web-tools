@@ -15,8 +15,6 @@ frozendict==2.4.7
 frozenlist==1.8.0
 humanfriendly==10.0
 idna==3.11
-jsonschema==4.25.1
-jsonschema-specifications==2025.9.1
 multidict==6.7.0
 propcache==0.4.1
 pycparser==2.23
