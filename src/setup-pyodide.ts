@@ -1,6 +1,7 @@
 import dummyModuleLoaderPy from './dummy_module_loader.py';
 import venvRequirementsTxt from './requirements.txt';
 import webSerialTransportPy from './webserial_transport.py';
+import { loadPyodide } from 'pyodide';
 
 interface PythonPackageSpec {
   // The PyPI package name can differ from the module name
@@ -44,21 +45,6 @@ export enum PyodideLoadState {
   LOADING_PYODIDE = 0,
   INSTALLING_DEPENDENCIES = 1,
   READY = 2,
-}
-
-async function loadPyodide(): Promise<Pyodide> {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-
-    script.onerror = e => reject(e);
-    script.onload = async () => {
-      const pyodide = await (window as any).loadPyodide();
-      resolve(pyodide);
-    };
-
-    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.js';
-    document.body.appendChild(script);
-  });
 }
 
 function parseRequirementsTxt(requirementsTxt: string): Map<string, string> {
