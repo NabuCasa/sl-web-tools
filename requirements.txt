@@ -1,1 +1,1 @@
-universal-silabs-flasher==0.0.31
+universal-silabs-flasher==0.1.2

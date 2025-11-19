@@ -16,7 +16,10 @@ const config = {
   },
   preserveEntrySignatures: false,
   plugins: [
-    nodeResolve(),
+    nodeResolve({
+      browser: true,
+      preferBuiltins: false,
+    }),
     babel({
       babelHelpers: 'bundled',
       plugins: ['@babel/plugin-transform-class-properties'],
