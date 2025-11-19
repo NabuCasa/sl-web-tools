@@ -370,7 +370,7 @@ export class FlashingDialog extends LitElement {
     if (!version) {
       return null;
     }
-    return Array.from(version.components)
+    return Array.from(version.components.toJs())
       .map((c: any) => c.data)
       .join('');
   }
