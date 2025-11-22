@@ -5,7 +5,7 @@ import collections.abc
 import logging
 import contextlib
 import sys
-from typing import final, Any, Callable, Literal
+from typing import final, Any, Callable
 
 import js
 
@@ -160,6 +160,7 @@ class WebSerialTransport(asyncio.Transport):
         _LOGGER.debug("Calling protocol connection_lost(%r)", exception)
         if self._protocol is not None:
             self._protocol.connection_lost(exception)
+            self._protocol = None
 
     def _cleanup(self, exception: Exception | None) -> None:
         self._is_closing = True
