@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import collections.abc
 import logging
+import contextlib
 import sys
-import typing
+from typing import final, Any, Callable, Literal
 
 import js
 
@@ -19,26 +20,29 @@ try:
 except ImportError:
     sys.modules["termios"] = object()  # type: ignore[assignment]
 
+
 class MockSqlite3:
     sqlite_version = "3.31.1"
     sqlite_version_info = (3, 31, 1)
+
+
 try:
     import sqlite3  # noqa: F401
 except ImportError:
     sys.modules["sqlite3"] = MockSqlite3()
 
+
+_WRITE_FLUSH_TIMEOUT = 5.0  # seconds
+
 _SERIAL_PORT = None
-_SERIAL_PORT_CLOSING_TASKS = []
+_SERIAL_PORT_CLOSING_TASKS: list[asyncio.Task[Any]] = []
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def close_port(port: Any) -> None:
-    _LOGGER.debug("Closing serial port")
-    # XXX: `port.close` isn't a coroutine, it's an awaitable, so it cannot be directly
-    # passed into `asyncio.create_task()`
-    await port.close()
-    _LOGGER.debug("Closed serial port")
+@final
+class ExitSentinel:
+    """A sentinel object to signal writer loop exit."""
 
 
 class WebSerialTransport(asyncio.Transport):
@@ -50,11 +54,12 @@ class WebSerialTransport(asyncio.Transport):
     ) -> None:
         super().__init__()
         self._loop: asyncio.BaseEventLoop = loop
-        self._protocol: asyncio.BaseProtocol | None = protocol
+        self._protocol: asyncio.Protocol | None = protocol
         self._port = port
 
-        self._write_queue: asyncio.Queue = asyncio.Queue()
+        self._write_queue: asyncio.Queue[bytes | type[ExitSentinel]] = asyncio.Queue()
         self._is_closing = False
+        self._close_port_task: asyncio.Task[None] = None
 
         self._js_reader = self._port.readable.getReader()
         self._js_writer = self._port.writable.getWriter()
@@ -68,9 +73,14 @@ class WebSerialTransport(asyncio.Transport):
         while True:
             chunk = await self._write_queue.get()
 
+            if chunk is ExitSentinel:
+                _LOGGER.debug("Received exit sentinel, exiting")
+                return
+
             try:
                 await self._js_writer.write(js.Uint8Array.new(chunk))
             except Exception as e:
+                _LOGGER.error("Error writing to serial port", exc_info=e)
                 self._cleanup(e)
                 break
 
@@ -81,6 +91,7 @@ class WebSerialTransport(asyncio.Transport):
                 self._cleanup(RuntimeError("Other side has closed"))
                 return
 
+            assert self._protocol is not None
             self._protocol.data_received(bytes(result.value))
 
     async def set_signals(
@@ -106,7 +117,7 @@ class WebSerialTransport(asyncio.Transport):
     def write(self, data: bytes) -> None:
         self._write_queue.put_nowait(data)
 
-    def set_protocol(self, protocol: asyncio.BaseProtocol) -> None:
+    def set_protocol(self, protocol: asyncio.Protocol) -> None:  # type: ignore[override]
         self._protocol = protocol
 
     def get_protocol(self) -> asyncio.BaseProtocol:
@@ -119,39 +130,55 @@ class WebSerialTransport(asyncio.Transport):
     def __del__(self):
         self._cleanup(RuntimeError("Transport was not closed!"))
 
-    def _cleanup(self, exception: BaseException | None) -> None:
-        self._is_closing = True
+    async def _close_port(self, exception: Exception | None) -> None:
+        _LOGGER.debug("Flushing pending writes")
 
-        self._reader_task.cancel()
-        self._writer_task.cancel()
+        # First, wait for writes to finish
+        with contextlib.suppress(TimeoutError):
+            async with asyncio.timeout(_WRITE_FLUSH_TIMEOUT):
+                _LOGGER.debug("Waiting for pending writes to finish")
+                self._write_queue.put_nowait(ExitSentinel)
+                await self._writer_task
 
-        if self._js_reader is not None:
-            self._js_reader.releaseLock()
-            self._js_reader = None
+        _LOGGER.debug("Cancelling write task")
+        with contextlib.suppress(asyncio.CancelledError):
+            self._writer_task.cancel()
+            await self._writer_task
 
         if self._js_writer is not None:
             self._js_writer.releaseLock()
             self._js_writer = None
 
-        closing_task = None
+        _LOGGER.debug("Closing serial port")
+        await self._port.close()
+        self._port = None
+
+        assert self._close_port_task is not None
+        _SERIAL_PORT_CLOSING_TASKS.remove(self._close_port_task)
+
+        # Only now do we call `connection_lost`
+        _LOGGER.debug("Calling protocol connection_lost(%r)", exception)
+        if self._protocol is not None:
+            self._protocol.connection_lost(exception)
+
+    def _cleanup(self, exception: Exception | None) -> None:
+        self._is_closing = True
+
+        # We do not cancel the writer task, we wait for it to cleanly exit
+        self._reader_task.cancel()
+
+        if self._js_reader is not None:
+            self._js_reader.releaseLock()
+            self._js_reader = None
 
         if self._port is not None:
-            closing_task = asyncio.create_task(close_port(self._port))
-            _SERIAL_PORT_CLOSING_TASKS.append(closing_task)
-            self._port = None
-
-        if self._protocol is not None:
-            if closing_task is None:
-                self._protocol.connection_lost(exception)
-            else:
-                closing_task.add_done_callback(
-                    lambda _, protocol=self._protocol: protocol.connection_lost(exception)
-                )
-                closing_task.add_done_callback(
-                    lambda _: _SERIAL_PORT_CLOSING_TASKS.remove(closing_task)
-                )
-
-            self._protocol = None
+            assert self._close_port_task is None
+            self._close_port_task = asyncio.create_task(self._close_port(exception))
+            _SERIAL_PORT_CLOSING_TASKS.append(self._close_port_task)
+        elif self._protocol is not None:
+            # If we have no serial port but have a connected protocol, we still need to
+            # notify the protocol that the connection is lost
+            self._protocol.connection_lost(exception)
 
     def close(self) -> None:
         self._cleanup(None)
@@ -164,7 +191,7 @@ def set_global_serial_port(serial_port) -> None:
 
 async def create_serial_connection(
     loop: asyncio.BaseEventLoop,
-    protocol_factory: typing.Callable[[], asyncio.Protocol],
+    protocol_factory: Callable[[], asyncio.Protocol],
     url: str,
     *,
     parity=None,
@@ -182,6 +209,9 @@ async def create_serial_connection(
         )
         await _SERIAL_PORT_CLOSING_TASKS.pop()
 
+    if _SERIAL_PORT is None:
+        raise RuntimeError("Global serial port is not set")
+
     # `url` is ignored, `_SERIAL_PORT` is used instead
     await _SERIAL_PORT.open(
         baudRate=baudrate,
@@ -194,7 +224,7 @@ async def create_serial_connection(
     return transport, protocol
 
 
-
 # Directly patch zigpy-serial
 import zigpy.serial
+
 zigpy.serial.create_serial_connection = create_serial_connection
