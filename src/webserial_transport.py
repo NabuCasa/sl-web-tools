@@ -59,7 +59,7 @@ class WebSerialTransport(asyncio.Transport):
 
         self._write_queue: asyncio.Queue[bytes | type[ExitSentinel]] = asyncio.Queue()
         self._is_closing = False
-        self._close_port_task: asyncio.Task[None] = None
+        self._close_port_task: asyncio.Task[None] | None = None
 
         self._js_reader = self._port.readable.getReader()
         self._js_writer = self._port.writable.getWriter()
@@ -134,16 +134,16 @@ class WebSerialTransport(asyncio.Transport):
         _LOGGER.debug("Flushing pending writes")
 
         # First, wait for writes to finish
-        with contextlib.suppress(TimeoutError):
+        try:
             async with asyncio.timeout(_WRITE_FLUSH_TIMEOUT):
                 _LOGGER.debug("Waiting for pending writes to finish")
                 self._write_queue.put_nowait(ExitSentinel)
                 await self._writer_task
-
-        _LOGGER.debug("Cancelling write task")
-        with contextlib.suppress(asyncio.CancelledError):
-            self._writer_task.cancel()
-            await self._writer_task
+        except asyncio.TimeoutError:
+            _LOGGER.debug("Write task did not exit in time, cancelling it")
+            with contextlib.suppress(asyncio.CancelledError):
+                self._writer_task.cancel()
+                await self._writer_task
 
         if self._js_writer is not None:
             self._js_writer.releaseLock()
