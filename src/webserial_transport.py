@@ -149,12 +149,18 @@ class WebSerialTransport(asyncio.Transport):
             self._js_writer.releaseLock()
             self._js_writer = None
 
-        _LOGGER.debug("Closing serial port")
-        await self._port.close()
-        self._port = None
+        if self._port is not None:
+            _LOGGER.debug("Closing serial port")
+            await self._port.close()
+            self._port = None
 
         assert self._close_port_task is not None
-        _SERIAL_PORT_CLOSING_TASKS.remove(self._close_port_task)
+
+        # If the task cannot be removed, we should still call `connection_lost`
+        try:
+            _SERIAL_PORT_CLOSING_TASKS.remove(self._close_port_task)
+        except ValueError:
+            pass
 
         # Only now do we call `connection_lost`
         _LOGGER.debug("Calling protocol connection_lost(%r)", exception)
@@ -165,15 +171,15 @@ class WebSerialTransport(asyncio.Transport):
     def _cleanup(self, exception: Exception | None) -> None:
         self._is_closing = True
 
-        # We do not cancel the writer task, we wait for it to cleanly exit
+        # The reader task should be cancelled. We do not cancel the writer task, we wait
+        # for it to cleanly exit.
         self._reader_task.cancel()
 
         if self._js_reader is not None:
             self._js_reader.releaseLock()
             self._js_reader = None
 
-        if self._port is not None:
-            assert self._close_port_task is None
+        if self._port is not None and self._close_port_task is None:
             self._close_port_task = asyncio.create_task(self._close_port(exception))
             _SERIAL_PORT_CLOSING_TASKS.append(self._close_port_task)
         elif self._protocol is not None:
