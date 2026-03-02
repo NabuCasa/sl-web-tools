@@ -17,6 +17,7 @@
     "pid": 33562,
     "vid": 12346
   }],
+  "firmwares": [],
   "bootloader_reset": ["rts_dtr", "baudrate"],
   "allow_custom_firmware_upload": true
 }
