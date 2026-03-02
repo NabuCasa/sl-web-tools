@@ -81,6 +81,7 @@ export interface Firmware {
   url: string;
   type: FirmwareType;
   version: string;
+  checksum?: string;
 }
 
 export interface ProbeMethod {

@@ -90,6 +90,7 @@ function convertReleaseManifest(
       url: urlTransformer(asset.browser_download_url),
       type: firmwareType,
       version: getVersion(fw.metadata),
+      checksum: fw.checksum,
     });
   }
 
