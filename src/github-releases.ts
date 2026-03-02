@@ -123,6 +123,6 @@ export async function buildManifestFromGitHubReleases(
 
   return {
     ...deviceConfig,
-    firmwares,
+    firmwares: [...firmwares, ...deviceConfig.firmwares],
   };
 }
