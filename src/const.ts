@@ -96,3 +96,49 @@ export interface Manifest {
   bootloader_reset: BootloaderReset[];
   allow_custom_firmware_upload: boolean;
 }
+
+export interface GitHubReleaseAsset {
+  name: string;
+  browser_download_url: string;
+}
+
+export interface GitHubRelease {
+  tag_name: string;
+  prerelease: boolean;
+  assets: GitHubReleaseAsset[];
+}
+
+export interface ReleaseManifestFirmwareMetadata {
+  baudrate: number;
+  fw_type: string;
+  fw_variant: string | null;
+  metadata_version: number;
+  sdk_version: string;
+  ezsp_version?: string;
+  ot_rcp_version?: string;
+  gecko_bootloader_version?: string;
+}
+
+export interface ReleaseManifestFirmware {
+  filename: string;
+  checksum: string;
+  size: number;
+  metadata: ReleaseManifestFirmwareMetadata | null;
+  release_notes: string | null;
+  release_summary: string | null;
+}
+
+export interface ReleaseManifest {
+  metadata: { created_at: string };
+  firmwares: ReleaseManifestFirmware[];
+}
+
+export type AssetUrlTransformer = (browserDownloadUrl: string) => string;
+
+export const ReleaseFwTypeToFirmwareType: Record<string, FirmwareType> = {
+  zigbee_ncp: FirmwareType.ZIGBEE_NCP,
+  zigbee_router: FirmwareType.ZIGBEE_ROUTER,
+  openthread_rcp: FirmwareType.OPENTHREAD_RCP,
+  'gecko-bootloader': FirmwareType.BOOTLOADER,
+  multipan: FirmwareType.MULTIPAN,
+};
