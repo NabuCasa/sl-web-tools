@@ -15,7 +15,10 @@ import './usf-icon';
 import './usf-icon-button';
 import './usf-file-upload';
 
-import { parseFirmwareBuffer } from './firmware-selector';
+import {
+  parseFirmwareBuffer,
+  validateFirmwareChecksum,
+} from './firmware-selector';
 import './firmware-selector';
 import type { Manifest, FirmwareType } from './const';
 import {
@@ -509,6 +512,13 @@ export class FlashingDialog extends LitElement {
           @click=${async () => {
             const response = await fetch(compatibleFirmware.url);
             const firmwareData = await response.arrayBuffer();
+
+            if (compatibleFirmware.checksum) {
+              validateFirmwareChecksum(
+                firmwareData,
+                compatibleFirmware.checksum
+              );
+            }
 
             this.selectedFirmware = await parseFirmwareBuffer(
               this.pyodide!,

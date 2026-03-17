@@ -1,0 +1,23 @@
+{
+  "product_name": "Home Assistant Connect ZBT-2",
+  "probe_methods": [{
+    "protocol": "bootloader",
+    "baudrate": 115200
+  }, {
+    "protocol": "ezsp",
+    "baudrate": 460800
+  }, {
+    "protocol": "spinel",
+    "baudrate": 460800
+  }],
+  "usb_filters": [{
+    "pid": 16385,
+    "vid": 12346
+  }, {
+    "pid": 33562,
+    "vid": 12346
+  }],
+  "firmwares": [],
+  "bootloader_reset": ["rts_dtr", "baudrate"],
+  "allow_custom_firmware_upload": true
+}

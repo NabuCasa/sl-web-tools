@@ -3,6 +3,8 @@ import { customElement, state, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { mdiFileUpload } from '@mdi/js';
 
+import { sha3_256 } from '@noble/hashes/sha3';
+import { bytesToHex } from '@noble/hashes/utils';
 import type { PyodideInterface } from 'pyodide';
 import { FirmwareIcons } from './const';
 import type { Manifest } from './const';
@@ -25,6 +27,27 @@ async function readFile(file: Blob): Promise<ArrayBuffer> {
     reader.onerror = e => reject(e);
     reader.readAsArrayBuffer(file);
   });
+}
+
+export function validateFirmwareChecksum(
+  buffer: ArrayBuffer,
+  expectedChecksum: string
+): void {
+  const [algorithm, expectedHash] = expectedChecksum.split(':');
+
+  let actualHash: string;
+
+  if (algorithm === 'sha3-256') {
+    actualHash = bytesToHex(sha3_256(new Uint8Array(buffer)));
+  } else {
+    throw new Error(`Unsupported checksum algorithm: ${algorithm}`);
+  }
+
+  if (actualHash !== expectedHash) {
+    throw new Error(
+      `Firmware checksum mismatch: expected ${expectedHash}, got ${actualHash}`
+    );
+  }
 }
 
 export async function parseFirmwareBuffer(
@@ -86,6 +109,10 @@ export class FirmwareSelector extends LitElement {
     }
 
     const firmwareData = await response.arrayBuffer();
+
+    if (firmware.checksum) {
+      validateFirmwareChecksum(firmwareData, firmware.checksum);
+    }
 
     await this.loadFirmware(firmwareData);
   }

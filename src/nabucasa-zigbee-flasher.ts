@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import type { Manifest } from './const';
+import type { AssetUrlTransformer, Manifest } from './const';
 
 import '@material/mwc-button';
 
@@ -9,10 +9,37 @@ export class NabuCasaSilabsFlasher extends LitElement {
   @property()
   public manifest!: string;
 
+  @property({ attribute: 'github-releases-api' })
+  public githubReleasesApi?: string;
+
+  @property({ attribute: 'firmware-regex' })
+  public firmwareRegex?: string;
+
+  public assetUrlTransformer: AssetUrlTransformer = url => url;
+
   async openFlasherDialog() {
     import('./flashing-dialog');
-    const response = await fetch(this.manifest);
-    const manifest: Manifest = await response.json();
+
+    let manifest: Manifest;
+
+    if (this.githubReleasesApi && this.firmwareRegex) {
+      const { buildManifestFromGitHubReleases } = await import(
+        './github-releases'
+      );
+
+      const deviceConfigResponse = await fetch(this.manifest);
+      const deviceConfig: Manifest = await deviceConfigResponse.json();
+
+      manifest = await buildManifestFromGitHubReleases(
+        deviceConfig,
+        this.githubReleasesApi,
+        new RegExp(this.firmwareRegex),
+        this.assetUrlTransformer
+      );
+    } else {
+      const response = await fetch(this.manifest);
+      manifest = await response.json();
+    }
 
     const dialog = document.createElement('flashing-dialog');
     dialog.manifest = manifest;

@@ -6,13 +6,9 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta
-      name="Description"
-      content="Nabu Casa SkyConnect zigbee firmware flasher"
-    />
     <base href="/" />
 
-    <title>Nabu Casa Zigbee Flasher</title>
+    <title>sl-web-tools firmware flasher</title>
     <style>
       html,
       body {
@@ -24,10 +20,6 @@
         font-family: 'Segoe UI', Roboto, sans-serif;
 
         --mdc-theme-primary: #03a9f4;
-      }
-
-      img {
-        vertical-align: middle;
       }
 
       main {
@@ -48,17 +40,12 @@
 
   <body>
     <main>
-      <h1>
-        <img
-          src="https://skyconnect.home-assistant.io/images/skyconnect-logo.png"
-          alt="SkyConnect logo"
-        />
-        Flasher
-      </h1>
-
-      <p>To get started, plug your SkyConnect into this computer.</p>
-
-      <nabucasa-zigbee-flasher manifest="./assets/manifests/skyconnect.json">
+      <nabucasa-zigbee-flasher
+        id="flasher"
+        manifest="./assets/manifests/zbt2.json"
+        github-releases-api="https://api.github.com/repos/NabuCasa/silabs-firmware-builder/releases"
+        firmware-regex="^zbt2_"
+      >
         <span slot="button">Connect</span>
       </nabucasa-zigbee-flasher>
     </main>
@@ -69,7 +56,19 @@
         window.location.hostname === 'localhost'
           ? '/dist/web/nabucasa-zigbee-flasher.js'
           : 'https://unpkg.com/@nabucasa/sl-web-tools@0.11.0/dist/web/nabucasa-zigbee-flasher.js?module'
-      );
+      ).then(() => {
+        // Transform GitHub release download URLs to raw.githubusercontent.com URLs to bypass CORS
+        document.querySelector('#flasher').assetUrlTransformer = (url) => {
+          const match = url.match(
+            /github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/(.+)/,
+          );
+          if (match) {
+            const [, owner, repo, tag, filename] = match;
+            return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/releases/${tag}/${filename}`;
+          }
+          return url;
+        };
+      });
     </script>
   </body>
 </html>
