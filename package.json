@@ -101,6 +101,10 @@
       "prettier --write"
     ]
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NabuCasa/sl-web-tools"
+  },
   "customElements": "custom-elements.json",
   "overrides": {
     "minimatch": "5.1.2",
