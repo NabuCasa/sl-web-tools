@@ -1,4 +1,3 @@
-import { FirmwareType, ReleaseFwTypeToFirmwareType } from './const';
 import type {
   AssetUrlTransformer,
   Firmware,
@@ -8,11 +7,12 @@ import type {
   ReleaseManifest,
   ReleaseManifestFirmwareMetadata,
 } from './const';
+import { FirmwareType, ReleaseFwTypeToFirmwareType } from './const';
 
 const ReleaseFirmwareNames: Partial<Record<FirmwareType, string>> = {
   [FirmwareType.ZIGBEE_NCP]: 'Zigbee Coordinator',
   [FirmwareType.OPENTHREAD_RCP]: 'Thread',
-  [FirmwareType.ZIGBEE_ROUTER]: 'Zigbee Router (alpha)',
+  [FirmwareType.ZIGBEE_ROUTER]: 'Zigbee Repeater (Router) - experimental',
 };
 
 const FIRMWARE_TYPE_ORDER: FirmwareType[] = [
@@ -38,7 +38,7 @@ function getVersion(metadata: ReleaseManifestFirmwareMetadata): string {
 }
 
 async function fetchLatestGitHubRelease(
-  apiUrl: string
+  apiUrl: string,
 ): Promise<GitHubRelease> {
   const response = await fetch(`${apiUrl}/latest`);
   return response.json();
@@ -48,7 +48,7 @@ function convertReleaseManifest(
   releaseManifest: ReleaseManifest,
   release: GitHubRelease,
   firmwareRegex: RegExp,
-  urlTransformer: AssetUrlTransformer
+  urlTransformer: AssetUrlTransformer,
 ): Firmware[] {
   const assetsByName = new Map<string, GitHubReleaseAsset>();
 
@@ -96,7 +96,7 @@ function convertReleaseManifest(
 
   firmwares.sort(
     (a, b) =>
-      FIRMWARE_TYPE_ORDER.indexOf(a.type) - FIRMWARE_TYPE_ORDER.indexOf(b.type)
+      FIRMWARE_TYPE_ORDER.indexOf(a.type) - FIRMWARE_TYPE_ORDER.indexOf(b.type),
   );
 
   return firmwares;
@@ -106,7 +106,7 @@ export async function buildManifestFromGitHubReleases(
   deviceConfig: Manifest,
   releasesApiUrl: string,
   firmwareRegex: RegExp,
-  urlTransformer: AssetUrlTransformer
+  urlTransformer: AssetUrlTransformer,
 ): Promise<Manifest> {
   const release = await fetchLatestGitHubRelease(releasesApiUrl);
 
@@ -119,7 +119,7 @@ export async function buildManifestFromGitHubReleases(
     releaseManifest,
     release,
     firmwareRegex,
-    urlTransformer
+    urlTransformer,
   );
 
   return {
