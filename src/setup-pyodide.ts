@@ -82,7 +82,7 @@ export async function setupPyodide(
 ): Promise<PyodideInterface> {
   onStateChange(PyodideLoadState.LOADING_PYODIDE);
   const pyodide = await loadPyodide({
-    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/',
+    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
   });
 
   onStateChange(PyodideLoadState.INSTALLING_DEPENDENCIES);
