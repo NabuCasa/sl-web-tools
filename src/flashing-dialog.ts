@@ -269,10 +269,6 @@ export class FlashingDialog extends LitElement {
     });
 
     // Set up the flasher
-    pyodide
-      .pyimport('webserial_transport')
-      .set_global_serial_port(this.serialPort);
-
     const PyApplicationType = pyodide.pyimport(
       'universal_silabs_flasher.const'
     ).ApplicationType;
@@ -285,6 +281,9 @@ export class FlashingDialog extends LitElement {
       'universal_silabs_flasher.flasher'
     ).Flasher;
 
+    const serialx = pyodide.pyimport('serialx.platforms.serial_pyodide');
+    serialx.register_js_port('pyodide://serial', this.serialPort);
+
     this.pyFlasher = PyFlasher.callKwargs({
       probe_methods: pyodide.toPy(
         this.manifest.probe_methods.map(pm => [
@@ -292,7 +291,7 @@ export class FlashingDialog extends LitElement {
           pm.baudrate,
         ])
       ),
-      device: '/dev/webserial', // the device name is ignored
+      device: 'pyodide://serial',
       bootloader_reset: pyodide.toPy(
         this.manifest.bootloader_reset.map(method => PyResetTarget(method))
       ),

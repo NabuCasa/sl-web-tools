@@ -23,7 +23,7 @@ propcache==0.4.1
 pycparser==3.0
 referencing==0.37.0
 rpds-py==0.30.0
-serialx==1.4.1
+serialx==1.5.0
 tqdm==4.67.3
 typing_extensions==4.15.0
 universal-silabs-flasher==1.1.0
