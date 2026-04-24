@@ -1,6 +1,5 @@
 import dummyModuleLoaderPy from './dummy_module_loader.py';
 import venvRequirementsTxt from './requirements.txt';
-import webSerialTransportPy from './webserial_transport.py';
 import { loadPyodide, type PyodideInterface } from 'pyodide';
 
 interface PythonPackageSpec {
@@ -8,6 +7,7 @@ interface PythonPackageSpec {
   package: string;
   module: string;
   version?: string;
+  code?: string;
 }
 
 const MOCKED_MODULES: PythonPackageSpec[] = [
@@ -41,6 +41,16 @@ const MOCKED_MODULES: PythonPackageSpec[] = [
 
   // Internal modules not bundled by default with pyodide
   { package: 'ssl', module: 'ssl', version: '1.0.0' },
+
+  {
+    package: 'sqlite3',
+    module: 'sqlite3',
+    code: `
+    class MockSqlite3:
+        sqlite_version = "3.31.1"
+        sqlite_version_info = (3, 31, 1)
+`,
+  },
 ];
 
 export enum PyodideLoadState {
@@ -82,7 +92,7 @@ export async function setupPyodide(
 ): Promise<PyodideInterface> {
   onStateChange(PyodideLoadState.LOADING_PYODIDE);
   const pyodide = await loadPyodide({
-    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.0/full/',
+    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
   });
 
   onStateChange(PyodideLoadState.INSTALLING_DEPENDENCIES);
@@ -96,16 +106,9 @@ export async function setupPyodide(
     micropip.add_mock_package.callKwargs({
       name: mod.package,
       version: mod.version || requirementsTxt.get(mod.package),
-      modules: new Map([[mod.module, dummyModuleLoaderPy]]),
+      modules: new Map([[mod.module, mod.code || dummyModuleLoaderPy]]),
     });
   }
-
-  // Include our webserial transport
-  micropip.add_mock_package.callKwargs({
-    name: 'webserial_transport',
-    version: '1.0.0',
-    modules: new Map([['webserial_transport', webSerialTransportPy]]),
-  });
 
   // Filter mocked packages from requirements
   const requirements: string[] = [];
